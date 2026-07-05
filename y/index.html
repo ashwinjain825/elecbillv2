@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script type="module" src="app.js"></script>
+    
+    
 </head>
 <body>
 
@@ -45,11 +48,11 @@
                         </div>
                         <div class="form-group">
                             <label>Unit Used</label>
-                            <input type="number" class="form-control" placeholder="0" min="1">
+                            <input type="number" class="form-control" placeholder="0" min="1" value="1000">
                         </div>
                         <div class="form-group">
                             <label>Bill Amount</label>
-                            <input type="number" class="form-control" placeholder="0.00" min="0" step="0.01">
+                            <input type="number" class="form-control" placeholder="0.00" min="0" step="0.01" value="10000.00">
                         </div>
                         
                         <div class="form-group">
@@ -79,7 +82,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Current Reading</label>
-                                <input type="number" class="form-control" placeholder="0">
+                                <input type="number" class="form-control" placeholder="0" value="2000">
                             </div>
                         </div>
                     </div>
@@ -93,7 +96,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Current Reading</label>
-                                <input type="number" class="form-control" placeholder="0">
+                                <input type="number" class="form-control" placeholder="0" value="2250">
                             </div>
                         </div>
                     </div>
@@ -107,7 +110,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Current Reading</label>
-                                <input type="number" class="form-control" placeholder="0">
+                                <input type="number" class="form-control" placeholder="0" value="2600">
                             </div>
                         </div>
                     </div>
@@ -154,11 +157,22 @@
 
                     </div>
                 </div>
+                <div class="action-footer">
+                    <button type="button" class="btn btn-primary" id="btn-save-bill">Save Bill</button>
+                </div>
 
             </main>
+
         </div>
     </div>
-<script>
+
+
+<script type="module">
+  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  import { db } from "./app.js";
+
+
+  let billData = {} // Object to hold the generated bill data for potential future use
   document.addEventListener('DOMContentLoaded', () => {
     // --- 1. Select DOM Elements ---
     
@@ -177,6 +191,7 @@
     const generateBtn = document.getElementById('btn-generate-bill');
     const resultsPanel = document.getElementById('card-generated-bills');
     const invoiceGrid = document.querySelector('.invoice-grid');
+    const saveBtn = document.getElementById('btn-save-bill');
 
     // --- 2. Handle Division Toggle (2 or 3 Families) ---
     
@@ -215,7 +230,7 @@
 
     // --- 4. Generate Bill Logic ---
 
-    billData = {} // Object to hold the generated bill data for potential future use
+    
 
     
     generateBtn.addEventListener('click', () => {
@@ -294,7 +309,7 @@
 
         const totalSubAmt = Object.values(billData.families).reduce((sum, obj) => sum + obj.subAmt, 0);
         const totalMainAmt = billAmount - totalSubAmt;
-        const mainAmtPerFamily = totalMainAmt / activeCards.length;
+        const mainAmtPerFamily = (totalMainAmt / activeCards.length).toFixed(2); // Round to 2 decimal places
 
         Object.values(billData.families).forEach(obj => {
             if ("subAmt" in obj) {
@@ -349,13 +364,13 @@
 
                         <div class="invoice-row">
                             <span>Main Amt</span>
-                            <strong>₹ ${bill.mainAmt.toFixed(2)}</strong>
+                            <strong>₹ ${bill.mainAmt}</strong>
                         </div>
 
                         <div class="invoice-row highlight-row">
                             <span>Total Payable</span>
                             <strong class="text-orange">
-                                ₹ ${bill.totalPayableAmt.toFixed(2)}
+                                ₹ ${bill.totalPayableAmt}
                             </strong>
                         </div>
                     </div>
@@ -377,8 +392,31 @@
             });
         }
     });
+
+    // --- 5. Save Bill Logic ---
+
+    async function uploadBillData(billData) {
+        const billRef = doc(db, "bills", billData.period);
+
+        try {
+            await setDoc(billRef, billData);
+            alert("Saved successfully");
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    saveBtn.addEventListener("click", async () => {
+        if (!billData.period) {
+            alert("Please generate the bill first.");
+            return;
+        }
+
+        await uploadBillData(billData);
+    });
+
 });
 </script>
-<script type="module" src="app.js"></script>
+
 </body>
 </html>
