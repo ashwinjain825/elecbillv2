@@ -74,7 +74,7 @@
                 <div class="readings-panel" id="meter-readings-container">
                     
                     <div class="reading-card">
-                        <h3 class="card-header">Ramavatar Jain</h3>
+                        <h3 class="card-header">Ram Avatar Jain</h3>
                         <div class="card-body">
                             <div class="form-group">
                                 <label>Last Reading</label>
@@ -168,7 +168,7 @@
 
 
 <script type="module">
-  import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+  import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
   import { db } from "./app.js";
 
 
@@ -309,7 +309,7 @@
 
         const totalSubAmt = Object.values(billData.families).reduce((sum, obj) => sum + obj.subAmt, 0);
         const totalMainAmt = billAmount - totalSubAmt;
-        const mainAmtPerFamily = (totalMainAmt / activeCards.length).toFixed(2); // Round to 2 decimal places
+        const mainAmtPerFamily = parseFloat((totalMainAmt / activeCards.length).toFixed(2)); // Round to 2 decimal places
 
         Object.values(billData.families).forEach(obj => {
             if ("subAmt" in obj) {
@@ -406,6 +406,23 @@
         }
     }
 
+    async function getBillData(period) {
+        try {
+            const billRef = doc(db, "bills", period);
+            const billSnap = await getDoc(billRef);
+
+            if (billSnap.exists()) {
+                return billSnap.data();
+            } else {
+                console.log("No bill found for:", period);
+                return null;
+            }
+        } catch (err) {
+            console.error("Error fetching bill:", err);
+            return null;
+        }
+    }
+    
     saveBtn.addEventListener("click", async () => {
         if (!billData.period) {
             alert("Please generate the bill first.");
