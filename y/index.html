@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electricity Bill Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-icon">&lt;/&gt;</span>
+                <div class="brand-text">
+                    <h2>CODE MASTER</h2>
+                    <p>... BUILT TO CREATE ...</p>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">Issue Bill</a>
+                <a href="#" class="nav-item">Bill History</a>
+                <a href="#" class="nav-item">Find Bill</a>
+            </nav>
+        </aside>
+
+        <div class="main-wrapper">
+            <header class="topbar">
+                <h1 class="page-title">Issue A Bill</h1>
+                <div class="user-profile">
+                    <span class="user-name">ASHWIN JAIN</span>
+                </div>
+            </header>
+
+            <main class="content-area">
+                
+                <div class="settings-panel">
+                    <div class="compact-grid">
+                        <div class="form-group">
+                            <label>Select Period</label>
+                            <input type="month" class="form-control" name="billing_period">
+                        </div>
+                        <div class="form-group">
+                            <label>Unit Used</label>
+                            <input type="number" class="form-control" placeholder="0" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Bill Amount</label>
+                            <input type="number" class="form-control" placeholder="0.00" min="0" step="0.01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Divisions</label>
+                            <div class="division-toggle">
+                                <label class="toggle-option">
+                                    <input type="radio" name="family_division" value="2">
+                                    <div class="toggle-box">2</div>
+                                </label>
+                                <label class="toggle-option">
+                                    <input type="radio" name="family_division" value="3" checked>
+                                    <div class="toggle-box">3</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="readings-panel" id="meter-readings-container">
+                    
+                    <div class="reading-card">
+                        <h3 class="card-header">Ramavatar Jain</h3>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Last Reading</label>
+                                <input type="number" class="form-control" value="1938">
+                            </div>
+                            <div class="form-group">
+                                <label>Current Reading</label>
+                                <input type="number" class="form-control" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reading-card">
+                        <h3 class="card-header">Sunil Kumar Jain</h3>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Last Reading</label>
+                                <input type="number" class="form-control" value="2108">
+                            </div>
+                            <div class="form-group">
+                                <label>Current Reading</label>
+                                <input type="number" class="form-control" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reading-card">
+                        <h3 class="card-header">Anil Kumar Jain</h3>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Last Reading</label>
+                                <input type="number" class="form-control" value="2510">
+                            </div>
+                            <div class="form-group">
+                                <label>Current Reading</label>
+                                <input type="number" class="form-control" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="action-footer">
+                    <button type="button" class="btn btn-primary" id="btn-generate-bill">Generate Bill</button>
+                </div>
+
+                <div class="results-panel hidden-section" id="card-generated-bills">
+                    <h2 class="section-title">Invoice Summaries</h2>
+                    <div class="invoice-grid">
+                        
+                        <div class="invoice-card">
+                            <div class="invoice-header">
+                                <strong>Sunil Kumar Jain</strong>
+                                <span class="badge">May 2026</span>
+                            </div>
+                            <div class="invoice-body">
+                                <div class="invoice-row">
+                                    <span>Last Reading</span>
+                                    <strong>2108</strong>
+                                </div>
+                                <div class="invoice-row">
+                                    <span>Current Reading</span>
+                                    <strong>2250</strong>
+                                </div>
+                                <div class="invoice-row">
+                                    <span>Units Used</span>
+                                    <strong>142</strong>
+                                </div>
+                                <hr class="divider">
+                                <div class="invoice-row">
+                                    <span>Rate / Unit</span>
+                                    <strong>₹ 8.50</strong>
+                                </div>
+                                <div class="invoice-row highlight-row">
+                                    <span>Total Payable</span>
+                                    <strong class="text-orange">₹ 1,207.00</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // --- 1. Select DOM Elements ---
+    
+    // Top Settings Inputs
+    const periodInput = document.querySelector('input[name="billing_period"]');
+    // Using querySelectorAll to grab the inputs since we didn't use IDs in the HTML
+    const settingsInputs = document.querySelectorAll('.settings-panel .form-control');
+    const totalUnitsInput = settingsInputs[1]; 
+    const billAmountInput = settingsInputs[2];
+
+    // Division Toggle & Reading Cards
+    const divisionRadios = document.querySelectorAll('input[name="family_division"]');
+    const readingCards = document.querySelectorAll('.reading-card');
+    
+    // Actions & Results Panel
+    const generateBtn = document.getElementById('btn-generate-bill');
+    const resultsPanel = document.getElementById('card-generated-bills');
+    const invoiceGrid = document.querySelector('.invoice-grid');
+
+    // --- 2. Handle Division Toggle (2 or 3 Families) ---
+    
+    const updateVisibleCards = (numDivisions) => {
+        readingCards.forEach((card, index) => {
+            if (index < numDivisions) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    };
+
+    // Initialize based on default checked radio (3 Family)
+    const initialChecked = document.querySelector('input[name="family_division"]:checked');
+    if (initialChecked) updateVisibleCards(parseInt(initialChecked.value));
+
+    // Listen for changes on the toggle
+    divisionRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            updateVisibleCards(parseInt(e.target.value));
+            // Hide generated bills if division changes to avoid mismatched data
+            resultsPanel.classList.add('hidden-section'); 
+        });
+    });
+
+    // --- 3. Helper Function: Format Month ---
+    // Converts "2026-05" into "May 2026"
+    const formatPeriod = (yyyy_mm) => {
+        if (!yyyy_mm) return "N/A";
+        const [year, month] = yyyy_mm.split('-');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${monthNames[parseInt(month) - 1]} ${year}`;
+    };
+
+    // --- 4. Generate Bill Logic ---
+
+    billData = {} // Object to hold the generated bill data for potential future use
+
+    
+    generateBtn.addEventListener('click', () => {
+        // Retrieve and parse top-level values
+        const periodText = formatPeriod(periodInput.value);
+        const totalUnits = parseFloat(totalUnitsInput.value);
+        const billAmount = parseFloat(billAmountInput.value);
+        
+        
+
+        // Basic Validation for main inputs
+        if (!periodInput.value) {
+            alert("Please select a billing period.");
+            return;
+        }
+        if (isNaN(totalUnits) || totalUnits <= 0) {
+            alert("Please enter a valid Total Unit Used (greater than 0).");
+            return;
+        }
+        if (isNaN(billAmount) || billAmount <= 0) {
+            alert("Please enter a valid Bill Amount.");
+            return;
+        }
+
+        // Calculate Global Rate
+        const ratePerUnit = billAmount / totalUnits;
+
+        billData['period'] = periodText;
+        billData['totalUnits'] = totalUnits;
+        billData['billAmount'] = billAmount;
+        billData['ratePerUnit'] = ratePerUnit.toFixed(2);
+        billData['families'] = {}; // Reset families data for new generation
+
+        
+        // Clear previous results
+        invoiceGrid.innerHTML = '';
+        let hasError = false;
+
+        // Filter to only process cards that are currently visible
+        const activeCards = Array.from(readingCards).filter(card => card.style.display !== 'none');
+
+        activeCards.forEach(card => {
+            // Extract data from the current family card
+            const familyName = card.querySelector('.card-header').innerText;
+            const cardInputs = card.querySelectorAll('input');
+            const lastReading = parseFloat(cardInputs[0].value);
+            const currentReading = parseFloat(cardInputs[1].value);
+            const key = Object.keys(billData.families).length;
+            
+
+            // Validation for readings
+            if (isNaN(lastReading) || isNaN(currentReading)) {
+                alert(`Please ensure all meter readings are entered for ${familyName}.`);
+                hasError = true;
+                return;
+            }
+
+            if (currentReading < lastReading) {
+                alert(`Error: Current reading for ${familyName} cannot be lower than the Last reading.`);
+                hasError = true;
+                return;
+            }
+
+            // Family Calculations
+            const unitsUsed = currentReading - lastReading;
+            const subAmt = unitsUsed * ratePerUnit;
+
+            billData.families[key] = {
+                name: familyName,
+                lastReading: lastReading,
+                currentReading: currentReading,
+                unitsUsed: unitsUsed,
+                subAmt: subAmt
+            };
+        });
+
+        const totalSubAmt = Object.values(billData.families).reduce((sum, obj) => sum + obj.subAmt, 0);
+        const totalMainAmt = billAmount - totalSubAmt;
+        const mainAmtPerFamily = totalMainAmt / activeCards.length;
+
+        Object.values(billData.families).forEach(obj => {
+            if ("subAmt" in obj) {
+                obj.mainAmt = mainAmtPerFamily;
+            }
+        });
+
+        Object.values(billData.families).forEach(obj => {
+            if ("subAmt" in obj) {
+                obj.totalPayableAmt = obj.subAmt + obj.mainAmt;
+            }
+        });
+
+
+        activeCards.forEach((card, index) => {
+            const bill = billData.families[index];
+
+            const invoiceHTML = `
+                <div class="invoice-card">
+                    <div class="invoice-header">
+                        <strong>${bill.name}</strong>
+                        <span class="badge">${periodText}</span>
+                    </div>
+
+                    <div class="invoice-body">
+                        <div class="invoice-row">
+                            <span>Last Reading</span>
+                            <strong>${bill.lastReading}</strong>
+                        </div>
+
+                        <div class="invoice-row">
+                            <span>Current Reading</span>
+                            <strong>${bill.currentReading}</strong>
+                        </div>
+
+                        <div class="invoice-row">
+                            <span>Units Used</span>
+                            <strong>${bill.unitsUsed}</strong>
+                        </div>
+
+                        <hr class="divider">
+
+                        <div class="invoice-row">
+                            <span>Rate / Unit</span>
+                            <strong>₹ ${ratePerUnit.toFixed(2)}</strong>
+                        </div>
+
+                        <div class="invoice-row">
+                            <span>Sub Amt</span>
+                            <strong>₹ ${bill.subAmt.toFixed(2)}</strong>
+                        </div>
+
+                        <div class="invoice-row">
+                            <span>Main Amt</span>
+                            <strong>₹ ${bill.mainAmt.toFixed(2)}</strong>
+                        </div>
+
+                        <div class="invoice-row highlight-row">
+                            <span>Total Payable</span>
+                            <strong class="text-orange">
+                                ₹ ${bill.totalPayableAmt.toFixed(2)}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            invoiceGrid.innerHTML += invoiceHTML;
+        });
+        console.log("Generated Bill Data:", billData);
+
+        // If validation passed, show the results panel and scroll down
+        if (!hasError) {
+            resultsPanel.classList.remove('hidden-section');
+            
+            // Smooth scroll to the generated bills
+            resultsPanel.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+    });
+});
+</script>
+</body>
+</html>
