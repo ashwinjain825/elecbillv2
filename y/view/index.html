@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Show My Bills - Mobile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="mobile-app">
+        
+        <header class="app-header">
+            <h1>Show My Bills</h1>
+        </header>
+
+        <div class="period-slider">
+            <button class="slider-btn" id="prev-month">&#60;</button>
+            <h2 class="current-period" id="display-period">Jun 2026</h2>
+            <button class="slider-btn" id="next-month">&#62;</button>
+        </div>
+
+        <main class="app-content">
+            
+            <div class="summary-card home-summary">
+                <div class="home-title">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                    <span>Home</span>
+                </div>
+                <div class="home-stats">
+                    <span class="units-text">649 units used</span>
+                    <span class="amount-text">Rs. 5230</span>
+                </div>
+            </div>
+
+            <div class="family-list" id="family-list">
+
+                <div class="family-card">
+                    <div class="card-main">
+                        <div class="card-info">
+                            <h3>Sunil Kumar Jain</h3>
+                            <div class="card-stats">
+                                <span class="units">Units : 218</span>
+                                <span class="price">Rs. 2737.22</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-action">RS</button>
+                            <button class="btn btn-action toggle-details">Detailed</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-details">
+                        <div class="detail-row"><span>Last Reading:</span> <strong>1890</strong></div>
+                        <div class="detail-row"><span>Current Reading:</span> <strong>2108</strong></div>
+                        <div class="detail-row"><span>Rate Per Unit:</span> <strong>Rs. 8.06</strong></div>
+                        <div class="divider"></div>
+                        <div class="detail-row"><span>Sub Amount:</span> <strong>Rs. 1757.08</strong></div>
+                        <div class="detail-row"><span>Main Amount:</span> <strong>Rs. 980.14</strong></div>
+                        <div class="detail-row highlight"><span>Total Payable:</span> <strong>Rs. 2737.22</strong></div>
+                    </div>
+                </div>
+
+                <div class="family-card">
+                    <div class="card-main">
+                        <div class="card-info">
+                            <h3>Anil Kumar Jain</h3>
+                            <div class="card-stats">
+                                <span class="units">Units : 0</span>
+                                <span class="price">Rs. 980.46</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-action">RS</button>
+                            <button class="btn btn-action toggle-details">Detailed</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-details">
+                        <div class="detail-row"><span>Last Reading:</span> <strong>2510</strong></div>
+                        <div class="detail-row"><span>Current Reading:</span> <strong>2510</strong></div>
+                        <div class="detail-row"><span>Rate Per Unit:</span> <strong>Rs. 8.06</strong></div>
+                        <div class="divider"></div>
+                        <div class="detail-row"><span>Sub Amount:</span> <strong>Rs. 0.00</strong></div>
+                        <div class="detail-row"><span>Main Amount:</span> <strong>Rs. 980.46</strong></div>
+                        <div class="detail-row highlight"><span>Total Payable:</span> <strong>Rs. 980.46</strong></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="btn-admin-issue">Issue A Bill (Only For Admin)</button>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+<script type="module">
+    import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+    import { db } from "../app.js";
+    function current_period() {
+        const months = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        const today = new Date();
+
+        // Move to previous month
+        today.setMonth(today.getMonth() - 1);
+
+        const month = months[today.getMonth()];
+        const year = today.getFullYear();
+
+        return `${month} ${year}`;
+    }
+
+    async function fetchData(period) {
+        const docRef = doc(db, "bills", period);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            console.log("Document data:", docSnap.data());
+            return docSnap.data();
+        } else {
+            console.log("No such document!");
+            return null;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const displayPeriod = document.getElementById('display-period');
+        const period = current_period();
+        displayPeriod.textContent = period;
+        let familyList = document.getElementById('family-list');
+
+        function updateData(billData){
+            familyList.innerHTML = ''; // Clear existing cards
+            Object.values(billData.families).forEach(family => {
+                familyList.innerHTML += `
+                    <div class="family-card">
+                        <div class="card-main">
+                            <div class="card-info">
+                                <h3>${family.name}</h3>
+                                <div class="card-stats">
+                                    <span class="units">Units : ${family.unitsUsed}</span>
+                                    <span class="price">Rs. ${family.totalPayableAmt}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-action">RS</button>
+                                <button class="btn btn-action toggle-details">Detailed</button>
+                            </div>
+                        </div>
+                        
+                        <div class="card-details">
+                            <div class="detail-row"><span>Last Reading:</span> <strong>${family.lastReading}</strong></div>
+                            <div class="detail-row"><span>Current Reading:</span> <strong>${family.currentReading}</strong></div>
+                            <div class="detail-row"><span>Rate Per Unit:</span> <strong>Rs. ${billData.ratePerUnit}</strong></div>
+                            <div class="divider"></div>
+                            <div class="detail-row"><span>Sub Amount:</span> <strong>Rs. ${family.subAmt}</strong></div>
+                            <div class="detail-row"><span>Main Amount:</span> <strong>Rs. ${family.mainAmt}</strong></div>
+                            <div class="detail-row highlight"><span>Total Payable:</span> <strong>Rs. ${family.totalPayableAmt}</strong></div>
+                        </div>
+                    </div>
+                `
+            });
+        }
+        
+        fetchData(period).then(data => {
+            if (data) {
+                updateData(data);
+            } else {
+                alert("No data found for the current period.");
+            }
+        });
+
+        // Select all the "Detailed" buttons
+        familyList.addEventListener("click", function (e) {
+            if (!e.target.classList.contains("toggle-details")) return;
+
+            const btn = e.target;
+            const card = btn.closest(".family-card");
+            const details = card.querySelector(".card-details");
+
+            details.classList.toggle("open");
+
+            if (details.classList.contains("open")) {
+                btn.innerText = "Hide";
+                btn.style.backgroundColor = "#475569";
+            } else {
+                btn.innerText = "Detailed";
+                btn.style.backgroundColor = "var(--orange-btn)";
+            }
+        });
+    })
+</script>
+</html>
